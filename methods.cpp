@@ -10,6 +10,7 @@ public:
     BMP (const std::string &filename);
     ~BMP();
     void save(const std::string &filename);
+    void rotate90();
 
 private:
     BMPHeader header;
@@ -17,7 +18,7 @@ private:
     Pixel** data;
     bool Memory(int height, int width);
     void FreeMemory(int height);
-  };
+};
 
 bool BMP::Memory(int height,int width) {
     data = new (std::nothrow) Pixel*[height];
@@ -104,4 +105,22 @@ void BMP::save(const std::string &filename) {
         }
     }
     file.close();
+}
+
+void BMP::rotate90() {
+    Pixel** rotatedData = new Pixel*[infoHeader.width];
+    for (int i = 0; i < infoHeader.width; ++i) {
+        rotatedData[i] = new Pixel[infoHeader.height];
+    }
+
+    for (int i = 0; i < infoHeader.height; ++i) {
+        for (int j = 0; j < infoHeader.width; ++j) {
+            rotatedData[j][infoHeader.height - i - 1] = data[i][j];
+        }
+    }
+
+    FreeMemory(infoHeader.height);
+
+    data = rotatedData;
+    std::swap(infoHeader.width, infoHeader.height);
 }
