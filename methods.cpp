@@ -9,6 +9,7 @@ class BMP {
 public:
     BMP (const std::string &filename);
     ~BMP();
+    void save(const std::string &filename);
 
 private:
     BMPHeader header;
@@ -78,5 +79,29 @@ BMP::BMP(const std::string &filename) {
         }
     }
 
+    file.close();
+}
+
+
+BMP::~BMP() {
+    FreeMemory(infoHeader.height);
+}
+
+void BMP::save(const std::string &filename) {
+    std::ofstream file(filename, std::ios::binary);
+    if (!file) {
+        throw std::runtime_error("Error file save failed.");
+    }
+
+    file.write(reinterpret_cast<const char *>(&header), sizeof(header));
+    file.write(reinterpret_cast<const char *>(&infoHeader), sizeof(infoHeader));
+
+    int bytes = infoHeader.width * infoHeader.height * sizeof(Pixel);
+    std::cout << "Program use " << bytes << "bytes" << std::endl;
+    for (int i = 0; i < infoHeader.height; ++i) {
+        for (int j = 0; j < infoHeader.width; ++j) {
+            file.write(reinterpret_cast<const char *>(&data[i][j]), sizeof(Pixel));
+        }
+    }
     file.close();
 }
