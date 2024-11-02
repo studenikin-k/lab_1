@@ -3,22 +3,10 @@
 #include <iostream>
 #include <fstream>
 #include <cstdint>
+#include <string>
 
 
-class BMP {
-public:
-    BMP (const std::string &filename);
-    ~BMP();
-    void save(const std::string &filename);
-    void rotate90();
 
-private:
-    BMPHeader header;
-    BMPInfoHeader infoHeader;
-    Pixel** data;
-    bool Memory(int height, int width);
-    void FreeMemory(int height);
-};
 
 bool BMP::Memory(int height,int width) {
     data = new (std::nothrow) Pixel*[height];
