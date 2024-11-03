@@ -9,6 +9,7 @@ public:
   void save(const std::string &filename);
   void rotate90();
   void rotateCounter90();
+  void gaussianBlur();
 
 private:
   BMPHeader header;
