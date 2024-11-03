@@ -6,8 +6,6 @@
 
 
 
-
-
 bool BMP::Memory(int height,int width) {
     data = new (std::nothrow) Pixel*[height];
     if (!data) return false;
