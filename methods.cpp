@@ -112,3 +112,21 @@ void BMP::rotate90() {
     data = rotatedData;
     std::swap(infoHeader.width, infoHeader.height);
 }
+
+void BMP::rotateCounter90(){
+    Pixel** rotatedData = new Pixel*[infoHeader.width];
+    for (int i = 0; i < infoHeader.width; ++i) {
+        rotatedData[i] = new Pixel[infoHeader.height];
+    }
+
+    for (int i = 0; i < infoHeader.height; ++i) {
+        for (int j = 0; j < infoHeader.width; ++j) {
+            rotatedData[infoHeader.width - j - 1][i] = data[i][j];
+        }
+    }
+
+    FreeMemory(infoHeader.height);
+
+    data = rotatedData;
+    std::swap(infoHeader.width, infoHeader.height);
+}
