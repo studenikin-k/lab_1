@@ -1,8 +1,13 @@
 #include <iostream>
 #include "methods.h"
 int main() {
+
+      std::cout << "Hello, please enter name of file: ";
+      std::string input;
+      std::getline(std::cin, input);
+      std::cout << std::endl;
     try {
-        BMP image("input.bmp");
+        BMP image(input);
 
         BMP imageCounterClockwise("input.bmp");
 
