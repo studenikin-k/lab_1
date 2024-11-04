@@ -240,9 +240,9 @@ void BMP::GaussianFilter() {
 
 int main() {
     try {
-        BMP image("yard.bmp");
+        BMP image("input.bmp");
 
-        BMP imageCounterClockwise("yard.bmp");
+        BMP imageCounterClockwise("input.bmp");
 
         image.Rotate90();
         image.Save("output_clockwise.bmp");
