@@ -2,8 +2,12 @@
 #include <fstream>
 #include "bmp.h"
 #include "methods.h"
-
+// Я неправильно понял назначение метода по его названию в заголовке. 
+// Методы -- это глаголы. Этот следовало назвать Allocate или что-то такое
+// Делать публичным, естественно, не нужно
 bool BMP::Memory(int height,int width) {
+    // Чтобы не заниматься ручеым выделением и очисткой памяти, используй 
+    // стандартные контейнеры и умные указатели
     data = new (std::nothrow) Pixel*[height];
     if (!data) return false;
 
@@ -59,6 +63,7 @@ BMP::BMP(const std::string &filename) {
 
     for (int i = 0; i < infoHeader.height; ++i) {
         for (int j = 0; j < infoHeader.width; ++j) {
+            // лучше читать сразу строками, попиксельно в сотни раз медленнее
             file.read(reinterpret_cast<char *>(&data[i][j]), sizeof(Pixel));
             if (!file) {
                 throw std::runtime_error("Error file read.");
@@ -137,6 +142,7 @@ void BMP::RotateCounter90() {
 }
 
 void BMP::GaussianFilter() {
+    // Хочется возможность менять размер ядра
     float kernel[3][3] = {
         {1 / 16.0f, 2 / 16.0f, 1 / 16.0f},
         {2 / 16.0f, 4 / 16.0f, 2 / 16.0f},
