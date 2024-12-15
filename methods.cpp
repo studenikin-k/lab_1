@@ -1,43 +1,33 @@
 #include <iostream>
 #include <fstream>
+#include <vector>
+#include <memory>
 #include "bmp.h"
 #include "methods.h"
+#include <algorithm>
 
-bool BMP::Memory(int height,int width) {
-    data = new (std::nothrow) Pixel*[height];
-    if (!data) return false;
 
-    for (int i = 0; i < height; ++i) {
-        data[i] = new (std::nothrow) Pixel[width];
-        if (!data[i]) {
-            for (int j = 0; j < i; ++j) {
-                delete[] data[j];
-            }
-            delete[] data;
-            data = nullptr;
-            return false;
-        }
-    }
-    return true;
-}
-
-void BMP::FreeMemory(int height) {
-    if (data) {
+bool Methods::allocateMemory(int height, int width) {
+    try {
+        data.resize(height);
         for (int i = 0; i < height; ++i) {
-            delete[] data[i];
+            data[i].resize(width);
         }
-        delete[] data;
-        data = nullptr;
+        return true;
+    } catch (const std::bad_alloc&) {
+        std::cerr << "Failed to allocate memory for image data." << std::endl;
+        data.clear();
+        return false;
     }
 }
 
-
-BMP::BMP(const std::string &filename) {
+Methods::Methods(const std::string &filename) {
     std::ifstream file(filename, std::ios::binary);
     if (!file) {
-        throw std::runtime_error("Error open file.");
+        throw std::runtime_error("Error opening file.");
     }
 
+    // Читаем заголовки BMP
     file.read(reinterpret_cast<char *>(&header), sizeof(header));
     if (header.fileType != 0x4D42) {
         throw std::runtime_error("File format is not BMP.");
@@ -49,61 +39,54 @@ BMP::BMP(const std::string &filename) {
     infoHeader.width = std::abs(infoHeader.width);
 
     if (infoHeader.width == 0 || infoHeader.height == 0) {
-        throw std::runtime_error("unexceptable file size.");
+        throw std::runtime_error("Unexpected file size.");
     }
+
+    // Переходим к данным изображения
     file.seekg(header.offsetData, file.beg);
 
+    // Выделяем память построчно
+    if (!allocateMemory(infoHeader.height, infoHeader.width)) {
+        throw std::runtime_error("Failed to allocate memory for image.");
+    }
 
-    Memory(infoHeader.height, infoHeader.width);
-
-
+    // Считываем данные построчно
     for (int i = 0; i < infoHeader.height; ++i) {
-        for (int j = 0; j < infoHeader.width; ++j) {
-            file.read(reinterpret_cast<char *>(&data[i][j]), sizeof(Pixel));
-            if (!file) {
-                throw std::runtime_error("Error file read.");
-            }
+        file.read(reinterpret_cast<char *>(data[i].data()), infoHeader.width * sizeof(Pixel));
+        if (!file) {
+            throw std::runtime_error("Error reading file.");
         }
     }
 
     file.close();
 }
 
-
-BMP::~BMP() {
-    FreeMemory(infoHeader.height);
+Methods::~Methods() {
+    data.clear();  // Автоматически освобождается память при уничтожении контейнера
 }
 
-
-void BMP::Save(const std::string &filename) {
+void Methods::Save(const std::string &filename) {
     std::ofstream file(filename, std::ios::binary);
     if (!file) {
-        throw std::runtime_error("File save error.");
+        throw std::runtime_error("Error saving file.");
     }
 
-    int byte = infoHeader.height * infoHeader.width * 4;
+    int byte = infoHeader.height * infoHeader.width * sizeof(Pixel);
 
-    std::cout << "File " << filename << " use " << byte << " bytes." << std::endl;
+    std::cout << "File " << filename << " uses " << byte << " bytes." << std::endl;
 
     file.write(reinterpret_cast<const char *>(&header), sizeof(header));
     file.write(reinterpret_cast<const char *>(&infoHeader), sizeof(infoHeader));
 
     for (int i = 0; i < infoHeader.height; ++i) {
-        for (int j = 0; j < infoHeader.width; ++j) {
-            file.write(reinterpret_cast<const char *>(&data[i][j]), sizeof(Pixel));
-        }
+        file.write(reinterpret_cast<const char *>(data[i].data()), infoHeader.width * sizeof(Pixel));
     }
+
     file.close();
 }
 
-
-
-
-void BMP::Rotate90() {
-    Pixel** rotatedData = new Pixel*[infoHeader.width];
-    for (int i = 0; i < infoHeader.width; ++i) {
-        rotatedData[i] = new Pixel[infoHeader.height];
-    }
+void Methods::Rotate90() {
+    std::vector<std::vector<Pixel>> rotatedData(infoHeader.width, std::vector<Pixel>(infoHeader.height));
 
     for (int i = 0; i < infoHeader.height; ++i) {
         for (int j = 0; j < infoHeader.width; ++j) {
@@ -111,18 +94,12 @@ void BMP::Rotate90() {
         }
     }
 
-    FreeMemory(infoHeader.height);
-
-    data = rotatedData;
+    data = std::move(rotatedData);
     std::swap(infoHeader.width, infoHeader.height);
 }
 
-
-void BMP::RotateCounter90() {
-    Pixel** rotatedData = new Pixel*[infoHeader.width];
-    for (int i = 0; i < infoHeader.width; ++i) {
-        rotatedData[i] = new Pixel[infoHeader.height];
-    }
+void Methods::RotateCounter90() {
+    std::vector<std::vector<Pixel>> rotatedData(infoHeader.width, std::vector<Pixel>(infoHeader.height));
 
     for (int i = 0; i < infoHeader.height; ++i) {
         for (int j = 0; j < infoHeader.width; ++j) {
@@ -130,64 +107,50 @@ void BMP::RotateCounter90() {
         }
     }
 
-    FreeMemory(infoHeader.height);
-
-    data = rotatedData;
+    data = std::move(rotatedData);
     std::swap(infoHeader.width, infoHeader.height);
 }
 
-void BMP::GaussianFilter() {
-    float kernel[3][3] = {
-        {1 / 16.0f, 2 / 16.0f, 1 / 16.0f},
-        {2 / 16.0f, 4 / 16.0f, 2 / 16.0f},
-        {1 / 16.0f, 2 / 16.0f, 1 / 16.0f}
-    };
-
-    Pixel** tempData = new Pixel*[infoHeader.height];
-    for (int i = 0; i < infoHeader.height; ++i) {
-        tempData[i] = new Pixel[infoHeader.width];
+void Methods::GaussianFilter(int kernelSize, const std::vector<std::vector<float>>& kernel) {
+    // Проверка на корректный размер ядра
+    if (kernelSize % 2 == 0 || static_cast<int>(kernel.size()) != kernelSize || static_cast<int>(kernel[0].size()) != kernelSize) {
+        throw std::invalid_argument("Kernel size must be odd and match the dimensions of the kernel matrix.");
     }
+
+    // Создаем временный буфер для хранения обработанных пикселей
+    std::vector<std::vector<Pixel>> tempData(infoHeader.height, std::vector<Pixel>(infoHeader.width));
+
+    int offset = kernelSize / 2; // Смещение от центра ядра
 
     for (int y = 0; y < infoHeader.height; ++y) {
         for (int x = 0; x < infoHeader.width; ++x) {
-            float sumRed = 0, sumGreen = 0, sumBlue = 0;
+            float sumRed = 0.0f, sumGreen = 0.0f, sumBlue = 0.0f;
 
+            // Проход по ядру свертки
+            for (int ky = -offset; ky <= offset; ++ky) {
+                for (int kx = -offset; kx <= offset; ++kx) {
+                    // Координаты пикселей с учетом границ изображения
+                    int nx = std::clamp(x + kx, 0, infoHeader.width - 1);
+                    int ny = std::clamp(y + ky, 0, infoHeader.height - 1);
 
-            for (int ky = -1; ky <= 1; ++ky) {
-                for (int kx = -1; kx <= 1; ++kx) {
-                    int nx = x + kx;
-                    int ny = y + ky;
+                    // Координаты ядра
+                    int kernelX = kx + offset;
+                    int kernelY = ky + offset;
 
-                    if (nx < 0) nx = 0;
-                    if (nx >= infoHeader.width) nx = infoHeader.width - 1;
-                    if (ny < 0) ny = 0;
-                    if (ny >= infoHeader.height) ny = infoHeader.height - 1;
-
-
-                    sumRed   += data[ny][nx].red * kernel[ky + 1][kx + 1];
-                    sumGreen += data[ny][nx].green * kernel[ky + 1][kx + 1];
-                    sumBlue  += data[ny][nx].blue * kernel[ky + 1][kx + 1];
+                    // Применение ядра
+                    sumRed   += data[ny][nx].red * kernel[kernelY][kernelX];
+                    sumGreen += data[ny][nx].green * kernel[kernelY][kernelX];
+                    sumBlue  += data[ny][nx].blue * kernel[kernelY][kernelX];
                 }
             }
 
-
-            tempData[y][x].red = static_cast<uint8_t>((sumRed < 0) ? 0 : ((sumRed > 255) ? 255 : sumRed));
-            tempData[y][x].green = static_cast<uint8_t>((sumGreen < 0) ? 0 : ((sumGreen > 255) ? 255 : sumGreen));
-            tempData[y][x].blue = static_cast<uint8_t>((sumBlue < 0) ? 0 : ((sumBlue > 255) ? 255 : sumBlue));
+            // Запись результатов с учетом допустимого диапазона значений
+            tempData[y][x].red   = static_cast<uint8_t>(std::clamp(sumRed, 0.0f, 255.0f));
+            tempData[y][x].green = static_cast<uint8_t>(std::clamp(sumGreen, 0.0f, 255.0f));
+            tempData[y][x].blue  = static_cast<uint8_t>(std::clamp(sumBlue, 0.0f, 255.0f));
         }
     }
 
-
-    for (int y = 0; y < infoHeader.height; ++y) {
-        for (int x = 0; x < infoHeader.width; ++x) {
-            data[y][x] = tempData[y][x];
-        }
-    }
-
-    for (int i = 0; i < infoHeader.height; ++i) {
-        delete[] tempData[i];
-    }
-    delete[] tempData;
+    // Обновляем данные изображения
+    data = std::move(tempData);
 }
-
-

@@ -1,6 +1,8 @@
 #ifndef BMP_H
 #define BMP_H
 #include <cstdint>
+
+
 #pragma pack(push, 1)
 struct BMPHeader {
     uint16_t fileType{0x4D42};

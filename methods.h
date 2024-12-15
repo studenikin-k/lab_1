@@ -1,24 +1,24 @@
 #ifndef METHODS_H
 #define METHODS_H
 #include "bmp.h"
-class BMP {
+#include <vector>
+
+class Methods {
 public:
-    BMP(const std::string &filename);
-    ~BMP();
+    Methods(const std::string &filename);
+    ~Methods();
+
     void Save(const std::string &filename);
     void Rotate90();
     void RotateCounter90();
-    void GaussianFilter();
+    void GaussianFilter(int kernelSize, const std::vector<std::vector<float>>& kernel);
 
 private:
     BMPHeader header;
     BMPInfoHeader infoHeader;
-    Pixel** data;
-    bool Memory(int height, int width);
-    void FreeMemory(int height);
+    std::vector<std::vector<Pixel>> data;
+
+    bool allocateMemory(int height, int width);
 };
 
-
-
-
-#endif //METHODS_H
+#endif // METHODS_H
