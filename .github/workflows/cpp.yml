@@ -26,8 +26,7 @@ jobs:
 
       - name: Run image processor and display results
         run: |
-          echo "Running image_processor..."
-          ./image_processor <<< "input.bmp"
+          ./main <<< "input.bmp"
 
 
       - name: Upload generated images
