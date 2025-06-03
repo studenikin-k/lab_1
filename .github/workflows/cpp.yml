@@ -14,7 +14,7 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4 # Этот шаг клонирует весь ваш репозиторий, включая src/input/input.bmp
+        uses: actions/checkout@v4
 
       - name: Set up C++ environment
         run: |
@@ -22,7 +22,7 @@ jobs:
           sudo apt-get install -y g++ make
 
       - name: Build project
-        run: make # Makefile будет использовать новую структуру файлов
+        run: make
 
       - name: Run image processor and display results
         run: |
@@ -31,7 +31,7 @@ jobs:
           # Путь должен быть src/input/input.bmp, так как он лежит именно там.
           ./image_processor <<< "src/input/input.bmp"
 
-      # Optional: Upload generated images for debugging/review
+
       - name: Upload generated images
         uses: actions/upload-artifact@v4
         if: always()
