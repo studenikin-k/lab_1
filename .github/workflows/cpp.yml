@@ -1,0 +1,47 @@
+name: C++ Image Processor Simplified CI
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build_and_run:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4 # Этот шаг клонирует весь ваш репозиторий, включая src/input/input.bmp
+
+      - name: Set up C++ environment
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y g++ make
+
+      - name: Build project
+        run: make # Makefile будет использовать новую структуру файлов
+
+      - name: Run image processor and display results
+        run: |
+          echo "Running image_processor..."
+          # Запускаем исполняемый файл, передавая ему путь к существующему input.bmp
+          # Путь должен быть src/input/input.bmp, так как он лежит именно там.
+          ./image_processor <<< "src/input/input.bmp"
+
+      # Optional: Upload generated images for debugging/review
+      - name: Upload generated images
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: generated-bmp-images
+          path: |
+            output_clockwise_single.bmp
+            output_clockwise_multi.bmp
+            output_counterclockwise_single.bmp
+            output_counterclockwise_multi.bmp
+            output_gaussian_single.bmp
+            output_gaussian_multi.bmp
+            src/input/input.bmp # Указываем путь к исходному файлу для загрузки в артефакты
