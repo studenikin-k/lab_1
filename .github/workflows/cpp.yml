@@ -27,9 +27,7 @@ jobs:
       - name: Run image processor and display results
         run: |
           echo "Running image_processor..."
-          # Запускаем исполняемый файл, передавая ему путь к существующему input.bmp
-          # Путь должен быть src/input/input.bmp, так как он лежит именно там.
-          ./image_processor <<< "src/input/input.bmp"
+          ./image_processor <<< "input.bmp"
 
 
       - name: Upload generated images
