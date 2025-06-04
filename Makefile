@@ -7,7 +7,7 @@ LDFLAGS=-pthread
 
 # Обновляем пути к исходным файлам
 SOURCES=src/main.cpp src/methods/methods.cpp
-HEADERS= src/bmp_h/bmp.h src/methods/methods.h
+HEADERS= include/bmp_h/bmp.h include/methods/methods.h
 OBJECTS=$(patsubst src/%.cpp, obj/%.o, $(SOURCES)) # Изменяем путь к объектным файлам
 
 EXECUTABLE=main

@@ -1,7 +1,7 @@
 #include <iostream>
 #include <string>
 #include <chrono> // Для измерения времени
-#include "methods/methods.h"
+#include "../include/methods/methods.h"
 
 int main() {
     std::cout << "Hello, please enter name of file: ";

@@ -2,8 +2,8 @@
 #include <fstream>
 #include <vector>
 #include <memory>
-#include "../bmp_h/bmp.h"
-#include "methods.h"
+#include "../../include/bmp_h/bmp.h"
+#include "../../include/methods/methods.h"
 #include <algorithm>
 #include <thread> // Для std::thread
 #include <chrono> // Для измерения времени
