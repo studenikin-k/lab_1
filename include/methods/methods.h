@@ -1,8 +1,10 @@
 #ifndef METHODS_H
 #define METHODS_H
+
 #include "../bmp_h/bmp.h"
 #include <vector>
 #include <thread>
+#include <string> // Убедитесь, что это включено
 
 class Methods {
 public:
@@ -21,6 +23,24 @@ public:
     void RotateCounter90SingleThread();
     void GaussianFilterSingleThread(int kernelSize, const std::vector<std::vector<float>>& kernel);
 
+    // ******************************************************
+    // *** ЭТО САМОЕ ВАЖНОЕ ИЗМЕНЕНИЕ: ПУБЛИЧНЫЕ ГЕТТЕРЫ ***
+    // ******************************************************
+    const BMPHeader& getHeader() const {
+        return header;
+    }
+
+    const BMPInfoHeader& getInfoHeader() const {
+        return infoHeader;
+    }
+
+    const std::vector<std::vector<Pixel>>& getData() const {
+        return data;
+    }
+
+    const std::vector<std::vector<Pixel>>& getOriginalData() const {
+        return original_data;
+    }
 
 private:
     BMPHeader header;
@@ -32,7 +52,6 @@ private:
 
 
     bool allocateMemory(int height, int width);
-
     void copyDataToOriginal();
 
 
