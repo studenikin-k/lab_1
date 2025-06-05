@@ -1,0 +1,44 @@
+name: C++ Image Processor Simplified CI
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build_and_run:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up C++ environment
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y g++ make
+
+      - name: Build project
+        run: make
+
+      - name: Run image processor and display results
+        run: |
+          ./main <<< "input.bmp"
+
+
+      - name: Upload generated images
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: generated-bmp-images
+          path: |
+            output_clockwise_single.bmp
+            output_clockwise_multi.bmp
+            output_counterclockwise_single.bmp
+            output_counterclockwise_multi.bmp
+            output_gaussian_single.bmp
+            output_gaussian_multi.bmp
+            src/input/input.bmp # Указываем путь к исходному файлу для загрузки в артефакты
